@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react';
 import type { Stats } from '../lib/tiger';
 
-const TILES: { key: keyof Stats['totals']; label: string }[] = [
+const TOTALS: { key: keyof Stats['totals']; label: string }[] = [
   { key: 'profiled_users', label: 'People profiled' },
   { key: 'markers_total', label: 'Markers recorded' },
   { key: 'markers_24h', label: 'Markers, last 24 h' },
   { key: 'proposed_total', label: 'Matches proposed' },
-  { key: 'connected_total', label: 'Mutual YES' },
+  { key: 'connected_total', label: 'Mutual matches' },
 ];
 
 const COLUMNS = ['proposed', 'intros_sent', 'yes_replies', 'no_replies', 'connected', 'declined'] as const;
@@ -38,39 +38,69 @@ export default function Page() {
 
   return (
     <main>
-      <header>
-        <h1>Aurora Matchmaker</h1>
-        <p className="muted">
-          Live from Tiger Data · refreshes every 10 s
-          {stats && ` · updated ${new Date(stats.at).toLocaleTimeString()}`}
-        </p>
-      </header>
-      {error && <p className="error">{error}</p>}
-      <section className="tiles">
-        {TILES.map(t => (
-          <div className="tile" key={t.key}>
-            <div className="value">{stats ? stats.totals[t.key].toLocaleString() : '–'}</div>
-            <div className="muted">{t.label}</div>
-          </div>
-        ))}
-      </section>
-      <section>
-        <h2>Match funnel by day</h2>
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Day</th>{COLUMNS.map(c => <th key={c}>{c.replace('_', ' ')}</th>)}</tr>
-            </thead>
-            <tbody>
-              {stats?.funnel.length ? stats.funnel.map(d => (
-                <tr key={d.day}><td>{d.day}</td>{COLUMNS.map(c => <td key={c}>{d[c]}</td>)}</tr>
-              )) : (
-                <tr><td colSpan={COLUMNS.length + 1} className="muted">No match events yet</td></tr>
-              )}
-            </tbody>
-          </table>
+      <header className="masthead">
+        <a className="event-link" href="https://www.hackuta.com/">HackUTA 2026</a>
+        <div className="title">
+          <h1>Aurora Ithaca</h1>
         </div>
-      </section>
+        <img className="coast" src="/odyssey/coast.webp" alt="" width="240" height="240" />
+      </header>
+
+      <div className="report">
+        <section className="totals" aria-labelledby="totals-title">
+          <h2 id="totals-title">Totals</h2>
+          <dl>
+            {TOTALS.map(({ key, label }) => (
+              <div key={key}>
+                <dt>{label}</dt>
+                <dd>{stats ? stats.totals[key].toLocaleString() : '—'}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section className="activity" aria-labelledby="activity-title">
+          <header className="activity-header">
+            <h2 id="activity-title">Daily matches</h2>
+            {stats && (
+              <p className="updated">
+                Updated <time dateTime={stats.at}>{new Date(stats.at).toLocaleTimeString()}</time>
+              </p>
+            )}
+          </header>
+          {error && (
+            <p className="error" role="alert">
+              {error}.{stats && ' Showing the last available data.'}
+            </p>
+          )}
+          {!stats && !error && <p role="status">Loading match data…</p>}
+          {stats && (
+            <div className="table-wrap" tabIndex={0} role="region" aria-label="Daily match activity">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Date</th>
+                    {COLUMNS.map(column => (
+                      <th scope="col" key={column}>{column.replaceAll('_', ' ')}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.funnel.map(day => (
+                    <tr key={day.day}>
+                      <th scope="row">{day.day}</th>
+                      {COLUMNS.map(column => <td key={column}>{day[column].toLocaleString()}</td>)}
+                    </tr>
+                  ))}
+                  {!stats.funnel.length && (
+                    <tr><td colSpan={COLUMNS.length + 1} className="empty">No match events yet.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
     </main>
   );
 }

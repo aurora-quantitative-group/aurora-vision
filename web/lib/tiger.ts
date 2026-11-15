@@ -5,9 +5,8 @@ import pg from 'pg';
 
 const globalForPool = globalThis as unknown as { tigerPool?: pg.Pool };
 
-// Same as src/db.ts: trust public CAs plus Tiger's own CA, and drop sslmode so pg does not override the ssl object.
 export function tiger(): pg.Pool {
-  if (!process.env.TIGER_DATABASE_URL) throw new Error('TIGER_DATABASE_URL is not set in the repo-root .env');
+  if (!process.env.TIGER_DATABASE_URL) throw new Error('TIGER_DATABASE_URL is not set in the repo-root .env.local or .env');
   if (!globalForPool.tigerPool) {
     const url = new URL(process.env.TIGER_DATABASE_URL);
     url.searchParams.delete('sslmode');

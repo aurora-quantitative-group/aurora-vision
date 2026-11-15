@@ -1,7 +1,9 @@
 import type { NextConfig } from 'next';
+import { existsSync } from 'node:fs';
 
-// Share the repo-root .env (TIGER_DATABASE_URL) instead of keeping a second copy of the secret.
-try { process.loadEnvFile('../.env'); } catch { /* no root .env: rely on the environment */ }
+for (const file of ['../.env.local', '../.env']) {
+  if (existsSync(file)) process.loadEnvFile(file);
+}
 
 const config: NextConfig = {};
 
