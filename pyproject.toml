@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aurora-vision"
+version = "0.1.0"
+description = "A FaceTime accessibility companion powered by Chert"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+  "livekit-agents[google,elevenlabs,silero]==1.8.12",
+  "google-genai==3.3.0",
+  "python-dotenv==1.2.4",
+  "Pillow==13.0.0",
+  "httpx==0.28.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0", "pytest-asyncio==1.5.0"]
+
+[tool.setuptools.packages.find]
+include = ["aurora*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
