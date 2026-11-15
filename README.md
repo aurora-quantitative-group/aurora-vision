@@ -46,6 +46,18 @@ use model-provider and LiveKit credits; Chert's trial does not cover those costs
 
 ## Connect the sponsor line
 
+With `.env.local` filled in and dependencies installed, start everything with:
+
+```sh
+.venv/bin/python -m aurora.run
+```
+
+This checks Chert sign-in, runs first-time onboarding when needed, starts the
+configured local ASL service, waits for LiveKit registration, and connects the
+FaceTime line. Follow the printed browser steps on first use. Ctrl+C stops all
+services; private logs are in `.local/logs/`. Use `--check` to validate local
+settings without starting services. The individual commands follow below.
+
 Use [Chert's official onboarding skill](https://app.trychert.com/skills.md).
 For a first-time account:
 
