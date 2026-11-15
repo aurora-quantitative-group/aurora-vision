@@ -43,14 +43,23 @@ async def entrypoint(ctx: JobContext) -> None:
         if scan:
             scan.cancel()
             await asyncio.gather(scan, return_exceptions=True)
+        resources = [media]
         if session:
-            await session.aclose()
-        await media.close()
+            resources.append(session)
         if vision:
-            await vision.close()
+            resources.append(vision)
         if asl:
-            await asl.close()
-        state.clear()
+            resources.append(asl)
+        try:
+            results = await asyncio.gather(
+                *(resource.aclose() if resource is session else resource.close()
+                  for resource in resources), return_exceptions=True,
+            )
+            for result in results:
+                if isinstance(result, Exception):
+                    logger.error("Call resource cleanup failed: %s", type(result).__name__)
+        finally:
+            state.clear()
 
     ctx.add_shutdown_callback(close)
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)

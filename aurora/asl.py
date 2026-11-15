@@ -65,5 +65,6 @@ async def load_letter_classifier():
 
     return await asyncio.to_thread(
         pipeline, "image-classification", model="abdollahhh/asl-sign-language-efficientnet-b0",
+        revision="28c016f94a07aa9d0c7a747b960d8d9931309c9a",
         trust_remote_code=False,
     )
