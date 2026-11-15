@@ -10,7 +10,7 @@ export function tiger(): pg.Pool {
   if (!globalForPool.tigerPool) {
     const url = new URL(process.env.TIGER_DATABASE_URL);
     url.searchParams.delete('sslmode');
-    const ca = [...rootCertificates, readFileSync(join(process.cwd(), '..', 'certs', 'tiger-ca.pem'), 'utf8')];
+    const ca = [...rootCertificates, readFileSync(join(process.cwd(), 'certs', 'tiger-ca.pem'), 'utf8')];
     globalForPool.tigerPool = new pg.Pool({ connectionString: url.toString(), ssl: { ca }, max: 3 });
   }
   return globalForPool.tigerPool;
