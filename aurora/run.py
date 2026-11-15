@@ -16,6 +16,10 @@ from aurora.config import Settings
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def handle_shutdown(signum, frame) -> None:
+    raise KeyboardInterrupt
+
+
 def json_records(output: str) -> list[dict]:
     records = []
     for line in output.splitlines():
@@ -73,19 +77,25 @@ class Processes:
         return child
 
     def close(self) -> None:
-        for child in reversed(self.children):
-            if child.poll() is not None:
-                continue
-            try:
-                os.killpg(child.pid, signal.SIGINT)
-                child.wait(timeout=15)
-            except subprocess.TimeoutExpired:
-                os.killpg(child.pid, signal.SIGKILL)
-                child.wait()
-            except ProcessLookupError:
-                pass
-        for output in self.logs:
-            output.close()
+        previous = {sig: signal.signal(sig, signal.SIG_IGN)
+                    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)}
+        try:
+            for child in reversed(self.children):
+                if child.poll() is not None:
+                    continue
+                try:
+                    os.killpg(child.pid, signal.SIGINT)
+                    child.wait(timeout=15)
+                except subprocess.TimeoutExpired:
+                    os.killpg(child.pid, signal.SIGKILL)
+                    child.wait()
+                except ProcessLookupError:
+                    pass
+        finally:
+            for output in self.logs:
+                output.close()
+            for sig, handler in previous.items():
+                signal.signal(sig, handler)
 
 
 def main() -> int:
@@ -141,6 +151,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    for sig in (signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, handle_shutdown)
     try:
         raise SystemExit(main())
     except KeyboardInterrupt:
