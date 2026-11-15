@@ -29,6 +29,10 @@ sign is correct. Do not present it as an interpreter. In a smoke test, the raw
 letter classifier labeled a blank frame as I at 0.9999999 confidence; the hand
 detector gate exists to reject that failure before classification.
 
+The actual pinned EfficientNet model plus MediaPipe detector passed the blank-
+frame rejection smoke test locally. This establishes that specific input gate,
+not recognition accuracy for real signers or FaceTime captures.
+
 For word/sentence ASL, connect a validated temporal model implementing the same
 clip contract. Evaluate with Deaf/ASL users, held-out signers, real Chert captures,
 camera framing changes, unknown signs, and no-hand clips. A high model-card

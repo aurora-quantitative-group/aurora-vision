@@ -22,7 +22,7 @@ server = AgentServer()
 
 def create_session(settings: Settings) -> AgentSession:
     return AgentSession(
-        stt=elevenlabs.STT(api_key=settings.eleven_key, model=settings.stt_model, use_realtime=True),
+        stt=elevenlabs.STT(api_key=settings.eleven_key, model=settings.stt_model),
         llm=google.LLM(api_key=settings.google_key, model=settings.gemini_model),
         tts=elevenlabs.TTS(api_key=settings.eleven_key, voice_id=settings.voice_id, model=settings.tts_model),
         vad=silero.VAD.load(),
