@@ -17,7 +17,7 @@ from aurora.vision import Vision
 
 load_dotenv(".env.local")
 logger = logging.getLogger("aurora")
-server = AgentServer()
+server = AgentServer(num_idle_processes=1)
 
 
 def create_session(settings: Settings) -> AgentSession:
@@ -62,13 +62,16 @@ async def entrypoint(ctx: JobContext) -> None:
             state.clear()
 
     ctx.add_shutdown_callback(close)
+    logger.info("Joining Chert room")
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)
+    logger.info("Joined Chert room; waiting for caller")
     caller = await ctx.wait_for_participant()
+    logger.info("Chert caller joined")
     if not caller.identity.startswith("chert-bridge-"):
         raise ValueError("Expected the managed Chert bridge participant")
     media.bind(caller.identity)
     await media.publish_card()
-    await wait_for_bridge(ctx.room)
+    logger.info("Status video published; starting audio session")
     vision = Vision(settings.google_key, settings.gemini_model)
     asl = ASL(settings.asl_endpoint, settings.asl_key)
     session = create_session(settings)
@@ -98,6 +101,9 @@ async def entrypoint(ctx: JobContext) -> None:
             delete_room_on_close=False,
         ),
     )
+    logger.info("Audio session started; waiting for FaceTime media readiness")
+    await wait_for_bridge(ctx.room)
+    logger.info("FaceTime media ready; greeting caller")
     greeting = "Hi, I'm Aurora, your AI visual companion. What would you like help with?"
     state.caption = greeting
     await session.say(greeting, allow_interruptions=True)
