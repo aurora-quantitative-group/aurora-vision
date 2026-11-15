@@ -10,19 +10,24 @@ are rejected. Confidence values are model scores, not calibrated guarantees.
 For a **static fingerspelling prototype** using a separate EfficientNet model:
 
 ```sh
-.venv/bin/python -m pip install 'transformers>=4.52,<6' torch torchvision
+.venv/bin/python -m pip install -e '.[asl]'
 .venv/bin/python -m aurora.letters_server
 ```
 
 Set `ASL_ENDPOINT=http://127.0.0.1:8090/translate` in `.env.local`. The model weights
-download from Hugging Face on first use. Remote model code is disabled. This
+download from Hugging Face on first use, pinned to a specific revision. A separate
+MediaPipe hand detector downloads from Google with a verified checksum. Remote
+model code is disabled. This
 optional service is bound to loopback, never expose it as a public API.
 
 Hold one static letter close enough to fill the camera view, with a plain
 background; ask Aurora to read the sign. At least three recent predictions must
-agree above 0.9. J and Z require motion and are deliberately excluded. This is
+agree above 0.9, and each classified image must contain exactly one detected,
+fully visible hand. J and Z require motion and are deliberately excluded. This is
 **not full ASL translation**, and classifier confidence cannot establish that a
-hand is present or the sign is correct. Do not present it as an interpreter.
+sign is correct. Do not present it as an interpreter. In a smoke test, the raw
+letter classifier labeled a blank frame as I at 0.9999999 confidence; the hand
+detector gate exists to reject that failure before classification.
 
 For word/sentence ASL, connect a validated temporal model implementing the same
 clip contract. Evaluate with Deaf/ASL users, held-out signers, real Chert captures,

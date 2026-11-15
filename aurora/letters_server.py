@@ -25,6 +25,11 @@ async def app() -> web.Application:
 
     application = web.Application(client_max_size=4 * 1024 * 1024)
     application.router.add_post("/translate", translate)
+
+    async def close_classifier(application):
+        await asyncio.to_thread(classifier.close)
+
+    application.on_cleanup.append(close_classifier)
     return application
 
 

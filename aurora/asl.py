@@ -62,9 +62,11 @@ def classify_letters(images: list[bytes], classifier) -> ASLResult:
 
 async def load_letter_classifier():
     from transformers import pipeline
+    from aurora.hands import HandClassifier
 
-    return await asyncio.to_thread(
+    classifier = await asyncio.to_thread(
         pipeline, "image-classification", model="abdollahhh/asl-sign-language-efficientnet-b0",
         revision="28c016f94a07aa9d0c7a747b960d8d9931309c9a",
         trust_remote_code=False,
     )
+    return await asyncio.to_thread(HandClassifier, classifier)
