@@ -4,3 +4,8 @@ node_modules/
 !.env.example
 .next/
 *.log
+.local/
+.venv/
+__pycache__/
+*.pyc
+*.tsbuildinfo
