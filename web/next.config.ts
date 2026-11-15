@@ -5,6 +5,8 @@ for (const file of ['../.env.local', '../.env']) {
   if (existsSync(file)) process.loadEnvFile(file);
 }
 
-const config: NextConfig = {};
+const config: NextConfig = {
+  outputFileTracingIncludes: { '/api/stats': ['./certs/tiger-ca.pem'] },
+};
 
 export default config;
