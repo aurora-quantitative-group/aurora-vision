@@ -13,13 +13,13 @@ def bridge_ready(metadata: str) -> bool:
 async def wait_for_bridge(room) -> None:
     ready = asyncio.Event()
 
-    def changed(metadata: str) -> None:
-        if bridge_ready(metadata):
+    def changed(*_) -> None:
+        if bridge_ready(room.metadata):
             ready.set()
 
     room.on("room_metadata_changed", changed)
     try:
-        changed(room.metadata)
+        changed()
         await ready.wait()
     finally:
         room.off("room_metadata_changed", changed)

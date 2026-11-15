@@ -14,7 +14,7 @@ logger = logging.getLogger("aurora.media")
 
 
 def encode_frame(frame: rtc.VideoFrame) -> bytes:
-    rgb = frame.convert(rtc.VideoBufferType.RGB24)
+    rgb = frame if frame.type == rtc.VideoBufferType.RGB24 else frame.convert(rtc.VideoBufferType.RGB24)
     image = Image.frombytes("RGB", (rgb.width, rgb.height), bytes(rgb.data))
     image.thumbnail((640, 480))
     output = BytesIO()
@@ -53,6 +53,7 @@ class Media:
         self.handlers = [
             ("track_subscribed", self.subscribed),
             ("track_unsubscribed", self.unsubscribed),
+            ("track_unpublished", self.unpublished),
             ("track_muted", self.muted),
             ("track_unmuted", self.unmuted),
             ("participant_disconnected", self.disconnected),
@@ -76,7 +77,7 @@ class Media:
             return
         self.stop_camera()
         self.camera_sid = publication.sid
-        self.camera_task = asyncio.create_task(self.capture(track))
+        self.camera_task = asyncio.create_task(self.capture(track, self.state.generation))
 
     def stop_camera(self) -> None:
         if self.camera_task:
@@ -86,13 +87,16 @@ class Media:
         self.state.clear_camera()
 
     def unsubscribed(self, track, publication, participant) -> None:
-        self.muted(publication, participant)
+        self.muted(participant, publication)
 
-    def muted(self, publication, participant) -> None:
+    def unpublished(self, publication, participant) -> None:
+        self.muted(participant, publication)
+
+    def muted(self, participant, publication) -> None:
         if participant.identity == self.identity and publication.sid == self.camera_sid:
             self.stop_camera()
 
-    def unmuted(self, publication, participant) -> None:
+    def unmuted(self, participant, publication) -> None:
         if publication.track:
             self.subscribed(publication.track, publication, participant)
 
@@ -100,7 +104,7 @@ class Media:
         if participant.identity == self.identity:
             self.stop_camera()
 
-    async def capture(self, track) -> None:
+    async def capture(self, track, generation: int) -> None:
         stream = rtc.VideoStream(track, capacity=1)
         last_frame = 0.0
         try:
@@ -116,7 +120,8 @@ class Media:
             logger.exception("Caller video capture failed")
         finally:
             await stream.aclose()
-            self.state.clear_camera()
+            if self.state.generation == generation:
+                self.state.clear_camera()
 
     async def publish_card(self) -> None:
         source = rtc.VideoSource(640, 360)
